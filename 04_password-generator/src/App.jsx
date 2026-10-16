@@ -1,0 +1,99 @@
+import { useState, useCallback, useEffect, useRef } from "react";
+
+function App() {
+    const [length, setLength] = useState(8);
+    const [numberAllowed, setNumberAllowed] = useState(false);
+    const [characterAllowed, setCharacterAllowed] = useState(false);
+    const [password, setPassword] = useState("");
+
+    //useRef hook
+    //for optimization. and select the password when copied. it is optional
+    const passwordRef = useRef(null)
+
+    const passwordGenerator = useCallback(() => {
+        let pass = "";
+        let str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        if (numberAllowed) {
+            str += "0123456789";
+        }
+        if (characterAllowed) {
+            str += "@#$&";
+        }
+
+        for (let i = 1; i <= length; i++) {
+            let char = Math.floor(Math.random() * str.length + 1);
+            pass += str.charAt(char);
+        }
+
+        setPassword(pass);
+    }, [length, numberAllowed, characterAllowed, setPassword]);
+
+
+    const copyPasswordToClipboard = useCallback(() => {
+      //for user setisfiction and optimization
+      passwordRef.current?.select();
+      passwordRef.current?.setSelectionRange(0, 8);// only 8 char will be selected
+
+      window.navigator.clipboard.writeText(password)
+    }, [password])
+
+    //useEffect 
+    useEffect(() => {passwordGenerator()}, [length, numberAllowed, characterAllowed, passwordGenerator])
+    return (
+        <div className=" flex flex-col items-center text-orange-500 bg-gray-700 w-full max-w-md mx-auto shadow-md rounded-xl px-4 py-6 my-8">
+            <h1 className="text-2xl text-white mb-2">Password Generator</h1>
+            <div className="flex shadow rounded-lg overflow-hidden md-4 w-full">
+                <input
+                    type="text"
+                    value={password}
+                    className="outline-none w-full py-1 px-3 bg-white"
+                    placeholder="Password"
+                    readOnly
+                    ref={passwordRef}
+                />
+                <button className="outline-none bg-blue-700 text-white px-3 py-0.5 shrink-0 cursor-pointer" onClick={copyPasswordToClipboard}>
+                    copy
+                </button>
+            </div>
+            <div className="flex text-sm gap-x-2">
+                <div className="flex items-center gap-x-1">
+                    <input
+                        type="range"
+                        min={8}
+                        max={20}
+                        value={length}
+                        className="cursor-pointer"
+                        onChange={(e) => {
+                            setLength(e.target.value);
+                        }}
+                    />
+                    <label> Length: {length}</label>
+                </div>
+                <div className="flex items-center gap-x-1">
+                    <input
+                        type="checkbox"
+                        defaultChecked={numberAllowed}
+                        id="numberInput"
+                        onChange={() => {
+                            setNumberAllowed((prev) => !prev);
+                        }}
+                    />
+                    <label htmlFor="numberInput">Numbers</label>
+                </div>
+                <div className="flex items-center gap-x-1">
+                    <input
+                        type="checkbox"
+                        defaultChecked={characterAllowed}
+                        id="characterInput"
+                        onChange={() => {
+                            setCharacterAllowed((prev) => !prev);
+                        }}
+                    />
+                    <label htmlFor="characterInput">Characters</label>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default App;
